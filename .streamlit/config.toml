@@ -1,0 +1,17 @@
+[client]
+showSidebarNavigation = false
+
+[theme]
+primaryColor = "#D4A017"
+backgroundColor = "#0F1117"
+secondaryBackgroundColor = "#1A1A2E"
+textColor = "#F3F4F6"
+font = "sans serif"
+
+[server]
+maxUploadSize = 50
+enableCORS = false
+headless = true
+
+[browser]
+gatherUsageStats = false
