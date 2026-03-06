@@ -113,7 +113,7 @@ def render_strategy():
             # Calculate SPY benchmark if enough data
             bench_prices = DataProvider.get_price_history("SPY", start=start_date)
             bench_returns = pd.Series()
-            if bench_prices is not None and not bench_prices.empty:
+            if bench_prices:
                 df_b = pd.DataFrame.from_dict(bench_prices, orient='index')
                 df_b.index = pd.to_datetime(df_b.index)
                 bench_returns = df_b['Close'].pct_change().dropna()

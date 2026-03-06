@@ -219,7 +219,8 @@ def render_etf_intelligence():
                     metric_card("Max Drawdown", f"{(mdd*100):.2f}%", delta_color="inverse")
                 with col3:
                      # Beta/Alpha vs SPY
-                     bench_prices = pd.DataFrame.from_dict(DataProvider.get_price_history("SPY", start=(datetime.now() - timedelta(days=365*5)).strftime("%Y-%m-%d")), orient='index')
+                     raw_bench = DataProvider.get_price_history("SPY", start=(datetime.now() - timedelta(days=365*5)).strftime("%Y-%m-%d"))
+                     bench_prices = pd.DataFrame.from_dict(raw_bench, orient='index') if raw_bench else pd.DataFrame()
                      if not bench_prices.empty:
                          b_rets = PerformanceAnalytics.calculate_returns(bench_prices)
                          beta = PerformanceAnalytics.calculate_beta(rets, b_rets)
