@@ -232,10 +232,11 @@ def render_etf_intelligence():
         with tab_analyst:
              st.markdown("### Analyst Consensus")
              
-             # Check for keys in session state
+             # Check for keys in session state or environment
+             import os
              api_keys = st.session_state.get("api_keys", {})
-             av_key = api_keys.get("ALPHA_VANTAGE_API_KEY")
-             fmp_key = api_keys.get("FMP_API_KEY")
+             av_key = api_keys.get("ALPHA_VANTAGE_API_KEY") or os.environ.get("ALPHA_VANTAGE_API_KEY")
+             fmp_key = api_keys.get("FMP_API_KEY") or os.environ.get("FMP_API_KEY")
              
              if not av_key and not fmp_key:
                  st.info("Premium analyst data (Financial Modeling Prep / Alpha Vantage) is currently not configured.")
