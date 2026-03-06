@@ -1,4 +1,6 @@
 import streamlit as st
+st.set_page_config(page_title="Mudric Lab — Portfolio Intelligence", layout="wide", initial_sidebar_state="expanded")
+
 import pandas as pd
 from datetime import datetime, timedelta
 
@@ -229,13 +231,27 @@ def render_etf_intelligence():
 
         with tab_analyst:
              st.markdown("### Analyst Consensus")
-             st.info("Premium analyst data (Financial Modeling Prep / Alpha Vantage) is currently not configured.")
-             st.markdown("""
-             > Provide API keys in the `.env` file or Settings module to enable premium fundamental data streams including:
-             > - Consensus Buy/Hold/Sell ratings
-             > - Price targets
-             > - Factor Analysis
-             """)
+             
+             # Check for keys in session state
+             api_keys = st.session_state.get("api_keys", {})
+             av_key = api_keys.get("ALPHA_VANTAGE_API_KEY")
+             fmp_key = api_keys.get("FMP_API_KEY")
+             
+             if not av_key and not fmp_key:
+                 st.info("Premium analyst data (Financial Modeling Prep / Alpha Vantage) is currently not configured.")
+                 st.markdown("""
+                 > Please add your API keys directly in the **Settings module** to enable premium fundamental data streams including:
+                 > - Consensus Buy/Hold/Sell ratings
+                 > - Price targets
+                 > - Factor Analysis
+                 """)
+             else:
+                 st.success("Premium API keys detected!")
+                 st.markdown("""
+                 > Your AlphaVantage / FMP API keys are securely loaded from your Settings.
+                 > 
+                 > *Integration of live premium ratings and analyst targets into this dashboard is currently in active development for the next minor release.*
+                 """)
 
     # The ETF Comparison tool has been moved to the Performance page
 if __name__ == "__main__":

@@ -1,4 +1,6 @@
 import streamlit as st
+st.set_page_config(page_title="Mudric Lab — Portfolio Intelligence", layout="wide", initial_sidebar_state="expanded")
+
 import pandas as pd
 from datetime import datetime, timedelta
 
