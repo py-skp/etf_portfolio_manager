@@ -35,12 +35,17 @@ def apply_theme(fig):
     return fig
 
 def plot_price_history(df, x_col="Date", y_cols=["Close"], title="Price History"):
-    """Plotly line/area chart for price history"""
+    """Plotly line/area chart for price history.
+    x_col: name of a column to use for x-axis, or anything else to use the index.
+    """
     fig = go.Figure()
-    
+
+    # Use the index when x_col is not an actual column in the DataFrame
+    x_values = df[x_col] if (isinstance(x_col, str) and x_col in df.columns) else df.index
+
     # Primary line
     fig.add_trace(go.Scatter(
-        x=df.index if df.index.name == x_col else df[x_col],
+        x=x_values,
         y=df[y_cols[0]],
         mode='lines',
         name=y_cols[0],
@@ -48,14 +53,14 @@ def plot_price_history(df, x_col="Date", y_cols=["Close"], title="Price History"
         fill='tozeroy',
         fillcolor='rgba(212, 160, 23, 0.1)'
     ))
-    
+
     # Additional lines (e.g., benchmark comparison)
     if len(y_cols) > 1:
         colors = ["#4D5360", "#94A3B8", "#64748B"]
         for i, col in enumerate(y_cols[1:]):
             c = colors[i % len(colors)]
             fig.add_trace(go.Scatter(
-                x=df.index if df.index.name == x_col else df[x_col],
+                x=x_values,
                 y=df[col],
                 mode='lines',
                 name=col,

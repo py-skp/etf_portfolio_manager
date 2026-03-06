@@ -19,10 +19,10 @@ def sidebar_nav(default_page="Dashboard"):
             "ETF Intelligence": "pages/02_etf_intelligence.py",
             "Performance": "pages/04_performance.py",
             "Risk": "pages/05_risk.py",
-            "Strategy": None,
-            "Screener": None,
-            "Macro": None,
-            "Reports": None,
+            "Strategy": "pages/06_strategy.py",
+            "Screener": "pages/07_screener.py",
+            "Macro": "pages/08_macro.py",
+            "Reports": "pages/09_reports.py",
             "Settings": "pages/03_settings.py"
         }
         
@@ -43,6 +43,14 @@ def sidebar_nav(default_page="Dashboard"):
                 default_index = options.index("Performance")
             elif "05_risk" in script_path:
                 default_index = options.index("Risk")
+            elif "06_strategy" in script_path:
+                default_index = options.index("Strategy")
+            elif "07_screener" in script_path:
+                default_index = options.index("Screener")
+            elif "08_macro" in script_path:
+                default_index = options.index("Macro")
+            elif "09_reports" in script_path:
+                default_index = options.index("Reports")
         except:
             pass
 

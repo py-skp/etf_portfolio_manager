@@ -158,3 +158,31 @@ class DataProvider:
             cache_service.set(cache_key, results, ttl=86400) # 1 day cache
             
         return results
+
+    @staticmethod
+    def get_etf_universe():
+        """Retrieve the entire ETF universe metadata dataframe for screening"""
+        cache_key = "etf_universe_full_df"
+        cached_df = cache_service.get(cache_key)
+        if cached_df is not None:
+             # Redis cache returns dicts, need to reconstruct DataFrame
+             import pandas as pd
+             return pd.DataFrame(cached_df)
+             
+        if fd_available:
+             try:
+                 etfs = fd.ETFs()
+                 df = etfs.select()
+                 if not df.empty:
+                      # Reset index to make Ticker a column instead of the index
+                      df = df.reset_index().rename(columns={'symbol': 'Ticker', 'name': 'Name', 'currency': 'Currency', 'category': 'Category', 'family': 'Issuer', 'exchange': 'Exchange', 'market': 'Market'})
+                      
+                      # Cache as dict of records
+                      cache_service.set(cache_key, df.to_dict(orient="records"), ttl=86400 * 7) # 1 week cache
+                      return df
+             except Exception as e:
+                 print(f"Error fetching ETF universe: {e}")
+                 
+        # Empty fallback
+        import pandas as pd
+        return pd.DataFrame()
