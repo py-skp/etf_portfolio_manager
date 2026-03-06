@@ -84,7 +84,7 @@ def render_strategy():
             price_data = {}
             for asset in st.session_state.strategy_assets:
                 prices = DataProvider.get_price_history(asset["Ticker"], start=start_date)
-                if prices is not None and not prices.empty:
+                if prices:
                     df = pd.DataFrame.from_dict(prices, orient='index')
                     df.index = pd.to_datetime(df.index)
                     price_data[asset["Ticker"]] = df['Close']
