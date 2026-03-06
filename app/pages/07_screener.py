@@ -4,6 +4,7 @@ st.set_page_config(page_title="Mudric Lab — Portfolio Intelligence", layout="w
 import pandas as pd
 
 from app.components.sidebar import sidebar_nav
+from app.components.styles import inject_global_css
 from app.components.metrics import section_header
 from app.services.data_provider import DataProvider
 
@@ -92,5 +93,6 @@ def render_screener():
          st.info("No ETFs match your current filter criteria.")
 
 if __name__ == "__main__":
+    inject_global_css()
     sidebar_nav("Screener")
     render_screener()

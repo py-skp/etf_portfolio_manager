@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from app.components.sidebar import sidebar_nav
+from app.components.styles import inject_global_css
 from app.components.metrics import section_header, metric_card
 from app.components.charts import plot_price_history, plot_allocation_donut, plot_var_histogram
 from app.components.tables import data_table
@@ -166,5 +167,6 @@ def render_reports():
             st.rerun()
 
 if __name__ == "__main__":
+    inject_global_css()
     sidebar_nav("Reports")
     render_reports()

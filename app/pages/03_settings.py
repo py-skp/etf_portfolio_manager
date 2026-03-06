@@ -3,6 +3,7 @@ st.set_page_config(page_title="Mudric Lab — Portfolio Intelligence", layout="w
 
 import os
 from app.components.sidebar import sidebar_nav
+from app.components.styles import inject_global_css
 from app.components.metrics import section_header
 
 def render_settings():
@@ -55,5 +56,6 @@ def render_settings():
     st.write("**Storage:** PostgreSQL + Redis (Local)")
 
 if __name__ == "__main__":
+    inject_global_css()
     sidebar_nav("Settings")
     render_settings()

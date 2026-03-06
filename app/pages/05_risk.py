@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from app.components.sidebar import sidebar_nav
+from app.components.styles import inject_global_css
 from app.components.metrics import section_header, metric_card
 from app.components.charts import plot_drawdown_chart, plot_var_histogram, plot_monte_carlo
 from app.services.data_provider import DataProvider
@@ -144,5 +145,6 @@ def render_risk():
             st.caption(f"**{prob_positive:.1f}%** probability of a positive return over the next year based on historical parameters.")
 
 if __name__ == "__main__":
+    inject_global_css()
     sidebar_nav("Risk")
     render_risk()

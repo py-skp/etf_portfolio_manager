@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 from app.components.sidebar import sidebar_nav
+from app.components.styles import inject_global_css
 from app.components.metrics import section_header
 from app.components.tables import data_table
 from app.services.data_provider import DataProvider
@@ -102,5 +103,6 @@ def render_performance():
                     st.info("Holdings overlap analysis is currently optimized for 2 ETFs. Select exactly 2 ETFs to see overlap.")
 
 if __name__ == "__main__":
+    inject_global_css()
     sidebar_nav("Performance")
     render_performance()

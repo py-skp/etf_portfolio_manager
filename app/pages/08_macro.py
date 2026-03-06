@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from app.components.sidebar import sidebar_nav
+from app.components.styles import inject_global_css
 from app.components.metrics import section_header, metric_card
 from app.components.charts import apply_theme, THEME
 from app.services.data_provider import DataProvider
@@ -144,5 +145,6 @@ def render_macro_dashboard():
                     i += 1
 
 if __name__ == "__main__":
+    inject_global_css()
     sidebar_nav("Macro")
     render_macro_dashboard()
