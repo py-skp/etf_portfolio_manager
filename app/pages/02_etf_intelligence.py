@@ -285,7 +285,7 @@ def render_etf_intelligence():
     # The ETF Comparison tool has been moved to the Performance page
 if __name__ == "__main__":
     from app.components.sidebar import sidebar_nav
-from app.components.styles import inject_global_css
+    from app.components.styles import inject_global_css
     inject_global_css()
     sidebar_nav("ETF Intelligence")
     render_etf_intelligence()

@@ -115,7 +115,7 @@ def render_portfolio_mgmt():
 if __name__ == "__main__":
     # If run as a page in streamlit multipage
     from app.components.sidebar import sidebar_nav
-from app.components.styles import inject_global_css
+    from app.components.styles import inject_global_css
     inject_global_css()
     sidebar_nav("Portfolio")
     render_portfolio_mgmt()
