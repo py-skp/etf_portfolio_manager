@@ -248,11 +248,37 @@ def render_etf_intelligence():
                  """)
              else:
                  st.success("Premium API keys detected!")
-                 st.markdown("""
-                 > Your AlphaVantage / FMP API keys are securely loaded from your Settings.
-                 > 
-                 > *Integration of live premium ratings and analyst targets into this dashboard is currently in active development for the next minor release.*
-                 """)
+                 
+                 if av_key:
+                     st.markdown("#### Real-Time Alpha Vantage Quote")
+                     import requests
+                     with st.spinner("Fetching live premium data..."):
+                         try:
+                             url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={selected_ticker}&apikey={av_key}"
+                             response = requests.get(url)
+                             data = response.json()
+                             
+                             if "Global Quote" in data and data["Global Quote"]:
+                                 quote = data["Global Quote"]
+                                 
+                                 c1, c2, c3 = st.columns(3)
+                                 with c1:
+                                     metric_card("Live Price", f"${float(quote.get('05. price', 0)):.2f}")
+                                 with c2:
+                                     metric_card("Trading Volume", f"{int(quote.get('06. volume', 0)):,}")
+                                 with c3:
+                                     metric_card("Latest Trading Day", quote.get('07. latest trading day', 'N/A'))
+                                     
+                                 st.markdown("---")
+                                 st.markdown(f"**Previous Close:** ${float(quote.get('08. previous close', 0)):.2f} | **Change:** {quote.get('10. change percent', 'N/A')}")
+                             elif "Information" in data:
+                                 st.warning(f"Alpha Vantage limit reached or endpoint restricted: {data['Information']}")
+                             else:
+                                 st.warning("No premium overview data available for this specific ticker on Alpha Vantage.")
+                         except Exception as e:
+                             st.error(f"Error fetching data from Alpha Vantage: {str(e)}")
+                 else:
+                     st.info("FMP key detected. Integration for FMP analyst targets coming soon.")
 
     # The ETF Comparison tool has been moved to the Performance page
 if __name__ == "__main__":
