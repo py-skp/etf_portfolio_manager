@@ -63,15 +63,23 @@ def render_etf_intelligence():
 
         # Profile Header Card
         st.markdown(f"""
-        <div style="background-color: #1A1A2E; padding: 20px; border-radius: 10px; border-left: 5px solid #D4A017; margin-bottom: 20px;">
+        <div style="
+            background: rgba(19, 23, 34, 0.6);
+            backdrop-filter: blur(12px);
+            padding: 24px;
+            border-radius: 12px;
+            border-left: 4px solid #00D4AA;
+            border: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 20px;
+        ">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <h2 style="margin: 0; color: #D4A017;">{profile.get('name', 'N/A')} ({selected_ticker})</h2>
-                    <p style="color: #F3F4F6; margin: 5px 0;">{profile.get('issuer', 'Unknown Issuer')} | {profile.get('asset_class', 'Unknown Class')} | {profile.get('exchange', 'Unknown Exchange')}</p>
+                    <h2 style="margin: 0; color: #E8EAED; font-weight: 700;">{profile.get('name', 'N/A')} ({selected_ticker})</h2>
+                    <p style="color: #9CA3AF; margin: 5px 0;">{profile.get('issuer', 'Unknown Issuer')} | {profile.get('asset_class', 'Unknown Class')} | {profile.get('exchange', 'Unknown Exchange')}</p>
                 </div>
                 <div style="text-align: right;">
-                    <h3 style="margin: 0; color: #F3F4F6;">{DataProvider.get_current_price(selected_ticker) or 'N/A'} {profile.get('currency', 'USD')}</h3>
-                    <p style="color: {'#28a745' if (profile.get('ytd_return') or 0) > 0 else '#dc3545'}; margin: 5px 0;">
+                    <h3 style="margin: 0; color: #E8EAED;">{DataProvider.get_current_price(selected_ticker) or 'N/A'} {profile.get('currency', 'USD')}</h3>
+                    <p style="color: {'#00D4AA' if (profile.get('ytd_return') or 0) > 0 else '#EF4444'}; margin: 5px 0;">
                         YTD: {((profile.get('ytd_return') or 0) * 100):.2f}%
                     </p>
                 </div>

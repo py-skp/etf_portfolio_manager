@@ -3,16 +3,49 @@ from streamlit_option_menu import option_menu
 
 def sidebar_nav(default_page="Dashboard"):
     with st.sidebar:
-        st.title("Mudric Lab")
-        st.markdown("---")
+        # Logo area with gradient effect
+        st.markdown("""
+        <div style="
+            text-align: center;
+            padding: 1.25rem 0 0.75rem 0;
+        ">
+            <h1 style="
+                font-family: 'Inter', sans-serif;
+                font-weight: 800;
+                font-size: 1.6rem;
+                letter-spacing: -0.04em;
+                margin: 0;
+                background: linear-gradient(135deg, #00D4AA 0%, #3B82F6 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">Mudric Lab</h1>
+            <p style="color: #6B7280; font-size: 0.7rem; margin: 2px 0 0 0; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500;">
+                Portfolio Intelligence
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown('<div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 0.5rem 0;"></div>', unsafe_allow_html=True)
         
-        # Portfolio Summary in Sidebar
-        st.sidebar.subheader("Portfolio Summary")
-        st.sidebar.metric("Total Value", "$124,500", "+2.5%")
+        # Portfolio Summary Widget
+        st.markdown("""
+        <div style="
+            background: rgba(0, 212, 170, 0.06);
+            border: 1px solid rgba(0, 212, 170, 0.12);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin: 0.5rem 0;
+        ">
+            <div style="color: #6B7280; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">Portfolio Value</div>
+            <div style="color: #E8EAED; font-size: 1.3rem; font-weight: 700; margin: 4px 0 2px 0;">$124,500</div>
+            <div style="color: #00D4AA; font-size: 0.75rem; font-weight: 500;">▲ +2.5% today</div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        st.markdown("---")
-        
-        # Define menu structure and mapping to files
+        st.markdown('<div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 0.5rem 0;"></div>', unsafe_allow_html=True)
+
+        # Define menu structure
         menu_items = {
             "Dashboard": "main.py",
             "Portfolio": "pages/01_portfolio.py",
@@ -27,14 +60,13 @@ def sidebar_nav(default_page="Dashboard"):
         }
         
         options = list(menu_items.keys())
-        icons = ["house", "briefcase", "graph-up", "speedometer", "shield-exclamation", "gear", "search", "globe", "file-earmark-text", "gear-fill"]
+        icons = ["house", "briefcase", "graph-up", "speedometer2", "shield-check", "lightbulb", "search", "globe2", "file-earmark-bar-graph", "gear"]
         
         try:
             default_index = options.index(default_page)
         except ValueError:
             default_index = 0
             
-        # Determine from context if `default_page` is not provided correctly or running natively
         try:
             from streamlit.runtime.scriptrunner import get_script_run_ctx
             ctx = get_script_run_ctx()
@@ -55,16 +87,37 @@ def sidebar_nav(default_page="Dashboard"):
             pass
 
         selected = option_menu(
-            menu_title="Main Menu",
+            menu_title=None,
             options=options,
             icons=icons,
-            menu_icon="cast",
             default_index=default_index,
             styles={
-                "container": {"background-color": "#1A1A2E"},
-                "icon": {"color": "#D4A017", "font-size": "1.2rem"}, 
-                "nav-link": {"font-size": "1rem", "text-align": "left", "margin":"0px", "--hover-color": "#262730"},
-                "nav-link-selected": {"background-color": "#D4A017", "color": "#0F1117"},
+                "container": {
+                    "background-color": "transparent",
+                    "padding": "0",
+                },
+                "icon": {
+                    "color": "#9CA3AF",
+                    "font-size": "1rem",
+                },
+                "nav-link": {
+                    "font-family": "'Inter', sans-serif",
+                    "font-size": "0.85rem",
+                    "font-weight": "500",
+                    "text-align": "left",
+                    "margin": "2px 0",
+                    "padding": "10px 14px",
+                    "border-radius": "8px",
+                    "color": "#9CA3AF",
+                    "--hover-color": "rgba(0, 212, 170, 0.06)",
+                    "transition": "all 0.2s ease",
+                },
+                "nav-link-selected": {
+                    "background": "linear-gradient(135deg, rgba(0,212,170,0.15) 0%, rgba(59,130,246,0.10) 100%)",
+                    "color": "#00D4AA",
+                    "font-weight": "600",
+                    "border-left": "3px solid #00D4AA",
+                },
             }
         )
         
@@ -75,5 +128,19 @@ def sidebar_nav(default_page="Dashboard"):
                 st.switch_page(target_file)
             else:
                 st.toast(f"The {selected} module is planned for a future phase.", icon="🚀")
+        
+        # Footer
+        st.markdown("""
+        <div style="
+            position: fixed; bottom: 0; left: 0; width: inherit; 
+            padding: 12px 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            background: linear-gradient(180deg, transparent, #0D1117);
+        ">
+            <p style="color: #4B5563; font-size: 0.65rem; text-align: center; margin: 0;">
+                Built by Mudric Lab · v2.0
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         
         return selected
