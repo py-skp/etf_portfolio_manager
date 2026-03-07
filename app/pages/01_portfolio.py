@@ -11,6 +11,22 @@ from app.database.models import Portfolio, Holding, Transaction
 from app.services.portfolio_service import PortfolioService
 from datetime import datetime
 
+@st.dialog("Confirm Deletion")
+def confirm_delete_holding(db_session, holding_id, ticker):
+    st.warning(f"Are you sure you want to delete {ticker}?\n\nThis will also permanently delete all of its recorded transactions.")
+    if st.button("Yes, Delete Holding", type="primary"):
+        PortfolioService.delete_holding(db_session, holding_id)
+        st.session_state.holding_deleted = True
+        st.rerun()
+
+@st.dialog("Confirm Deletion")
+def confirm_delete_transaction(db_session, t_id, desc):
+    st.warning(f"Are you sure you want to delete this transaction: {desc}?")
+    if st.button("Yes, Delete Transaction", type="primary"):
+        PortfolioService.delete_transaction(db_session, t_id)
+        st.session_state.transaction_deleted = True
+        st.rerun()
+
 # NOTE: This page is typically accessed via the sidebar_nav in main.py 
 # but Streamlit multipage setup usually expects files in pages/
 
@@ -84,26 +100,28 @@ def render_portfolio_mgmt():
                         else:
                             st.error(f"Ticker {ticker.upper()} already exists in this portfolio.")
             
-            # Show existing holdings
-            holdings = db.query(Holding).filter(Holding.portfolio_id == selected_portfolio.id).all()
             if holdings:
-                df_h = pd.DataFrame([{
-                    "ID": h.id,
-                    "Ticker": h.ticker,
-                    "Name": h.name,
-                    "Target %": h.target_allocation_pct
-                } for h in holdings])
-                data_table(df_h)
-                
                 st.markdown("<br>", unsafe_allow_html=True)
-                with st.expander("Delete Holding"):
-                    st.warning("Deleting a holding will also delete all of its recorded transactions.")
-                    h_options = {h.id: f"{h.ticker} - {h.name}" for h in holdings}
-                    h_to_delete = st.selectbox("Select Holding to Delete", options=list(h_options.keys()), format_func=lambda x: h_options[x])
-                    if st.button("Delete Selected Holding", type="primary"):
-                        if PortfolioService.delete_holding(db, h_to_delete):
-                            st.success("Holding deleted!")
-                            st.rerun()
+                # Header row
+                hc1, hc2, hc3, hc4, hc5 = st.columns([1, 2, 4, 2, 1])
+                hc1.write("**ID**")
+                hc2.write("**Ticker**")
+                hc3.write("**Name**")
+                hc4.write("**Target %**")
+                hc5.write("**Action**")
+                st.divider()
+                
+                for h in holdings:
+                    c1, c2, c3, c4, c5 = st.columns([1, 2, 4, 2, 1])
+                    c1.write(h.id)
+                    c2.write(h.ticker)
+                    c3.write(h.name)
+                    c4.write(h.target_allocation_pct)
+                    if c5.button("🗑️", key=f"del_h_{h.id}"):
+                        confirm_delete_holding(db, h.id, h.ticker)
+                        
+                if st.session_state.pop("holding_deleted", False):
+                    st.toast("Holding deleted successfully!")
             else:
                 st.info("No holdings yet.")
 
@@ -138,24 +156,31 @@ def render_portfolio_mgmt():
             # List transactions
             transactions = db.query(Transaction).filter(Transaction.portfolio_id == selected_portfolio.id).all()
             if transactions:
-                df_t = pd.DataFrame([{
-                    "ID": t.id,
-                    "Date": t.date.strftime("%Y-%m-%d"),
-                    "Ticker": t.holding.ticker,
-                    "Type": t.transaction_type,
-                    "Qty": t.quantity,
-                    "Price": f"${t.price:.2f}",
-                } for t in transactions])
-                data_table(df_t)
-                
                 st.markdown("<br>", unsafe_allow_html=True)
-                with st.expander("Delete Transaction"):
-                    t_options = {t.id: f"{t.date.strftime('%Y-%m-%d')} - {t.transaction_type} {t.quantity} {t.holding.ticker} @ ${t.price:.2f}" for t in transactions}
-                    t_to_delete = st.selectbox("Select Transaction to Delete", options=list(t_options.keys()), format_func=lambda x: t_options[x])
-                    if st.button("Delete Selected Transaction", type="primary"):
-                        if PortfolioService.delete_transaction(db, t_to_delete):
-                            st.success("Transaction deleted!")
-                            st.rerun()
+                # Header row
+                tc1, tc2, tc3, tc4, tc5, tc6 = st.columns([1, 2, 2, 1.5, 1.5, 1])
+                tc1.write("**Date**")
+                tc2.write("**Ticker**")
+                tc3.write("**Type**")
+                tc4.write("**Qty**")
+                tc5.write("**Price**")
+                tc6.write("**Action**")
+                st.divider()
+                
+                for t in transactions:
+                    dt_str = t.date.strftime("%Y-%m-%d")
+                    c1, c2, c3, c4, c5, c6 = st.columns([1, 2, 2, 1.5, 1.5, 1])
+                    c1.write(dt_str)
+                    c2.write(t.holding.ticker)
+                    c3.write(t.transaction_type)
+                    c4.write(t.quantity)
+                    c5.write(f"${t.price:.2f}")
+                    if c6.button("🗑️", key=f"del_t_{t.id}"):
+                        desc = f"{dt_str} {t.transaction_type} {t.quantity} {t.holding.ticker}"
+                        confirm_delete_transaction(db, t.id, desc)
+                        
+                if st.session_state.pop("transaction_deleted", False):
+                    st.toast("Transaction deleted successfully!")
             else:
                 st.info("No transactions found.")
 
