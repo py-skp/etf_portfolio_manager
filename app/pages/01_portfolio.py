@@ -77,19 +77,33 @@ def render_portfolio_mgmt():
                     target = st.number_input("Target Allocation %", min_value=0.0, max_value=100.0)
                     submitted = st.form_submit_button("Add Holding")
                     if submitted and ticker:
-                        PortfolioService.add_holding(db, selected_portfolio.id, ticker.upper(), name, target_pct=target)
-                        st.success(f"Added {ticker}")
-                        st.rerun()
+                        h = PortfolioService.add_holding(db, selected_portfolio.id, ticker.upper(), name, target_pct=target)
+                        if h:
+                            st.success(f"Added {ticker}")
+                            st.rerun()
+                        else:
+                            st.error(f"Ticker {ticker.upper()} already exists in this portfolio.")
             
             # Show existing holdings
             holdings = db.query(Holding).filter(Holding.portfolio_id == selected_portfolio.id).all()
             if holdings:
                 df_h = pd.DataFrame([{
+                    "ID": h.id,
                     "Ticker": h.ticker,
                     "Name": h.name,
                     "Target %": h.target_allocation_pct
                 } for h in holdings])
                 data_table(df_h)
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                with st.expander("Delete Holding"):
+                    st.warning("Deleting a holding will also delete all of its recorded transactions.")
+                    h_options = {h.id: f"{h.ticker} - {h.name}" for h in holdings}
+                    h_to_delete = st.selectbox("Select Holding to Delete", options=list(h_options.keys()), format_func=lambda x: h_options[x])
+                    if st.button("Delete Selected Holding", type="primary"):
+                        if PortfolioService.delete_holding(db, h_to_delete):
+                            st.success("Holding deleted!")
+                            st.rerun()
             else:
                 st.info("No holdings yet.")
 
@@ -106,8 +120,9 @@ def render_portfolio_mgmt():
                     
                     submitted = st.form_submit_button("Record")
                     if submitted and h_ticker:
-                        h = db.query(Holding).filter(Holding.ticker == h_ticker).first()
-                        new_t = Transaction(
+                        h = db.query(Holding).filter(Holding.portfolio_id == selected_portfolio.id, Holding.ticker == h_ticker).first()
+                        if h:
+                            new_t = Transaction(
                             portfolio_id=selected_portfolio.id,
                             holding_id=h.id,
                             transaction_type=t_type,

@@ -32,6 +32,11 @@ class PortfolioService:
 
     @staticmethod
     def add_holding(db: Session, portfolio_id: int, ticker: str, name: str = "", asset_type: str = "ETF", target_pct: float = 0.0):
+        # Prevent duplicate tickers in the same portfolio
+        existing = db.query(Holding).filter(Holding.portfolio_id == portfolio_id, Holding.ticker == ticker).first()
+        if existing:
+            return None
+            
         new_holding = Holding(
             portfolio_id=portfolio_id,
             ticker=ticker,
@@ -43,6 +48,15 @@ class PortfolioService:
         db.commit()
         db.refresh(new_holding)
         return new_holding
+
+    @staticmethod
+    def delete_holding(db: Session, holding_id: int):
+        holding = db.query(Holding).filter(Holding.id == holding_id).first()
+        if holding:
+            db.delete(holding)
+            db.commit()
+            return True
+        return False
 
     @staticmethod
     def delete_transaction(db: Session, transaction_id: int):
