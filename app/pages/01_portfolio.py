@@ -100,27 +100,43 @@ def render_portfolio_mgmt():
                         else:
                             st.error(f"Ticker {ticker.upper()} already exists in this portfolio.")
             
-            # Show existing holdings
-            holdings = db.query(Holding).filter(Holding.portfolio_id == selected_portfolio.id).all()
-            if holdings:
+            # Show existing holdings with performance metrics
+            valuation = PortfolioService.get_portfolio_valuation(db, selected_portfolio.id)
+            holdings_perf = valuation['holdings']
+            
+            if holdings_perf:
                 st.markdown("<br>", unsafe_allow_html=True)
                 # Header row
-                hc1, hc2, hc3, hc4, hc5 = st.columns([1, 2, 4, 2, 1])
-                hc1.write("**ID**")
-                hc2.write("**Ticker**")
-                hc3.write("**Name**")
-                hc4.write("**Target %**")
-                hc5.write("**Action**")
+                hc1, hc2, hc3, hc4, hc5, hc6 = st.columns([1, 1.5, 1.5, 1.5, 1.5, 1])
+                hc1.write("**Ticker**")
+                hc2.write("**Shares**")
+                hc3.write("**Avg Cost**")
+                hc4.write("**Market Val**")
+                hc5.write("**Unrealized**")
+                hc6.write("**Action**")
                 st.divider()
                 
-                for h in holdings:
-                    c1, c2, c3, c4, c5 = st.columns([1, 2, 4, 2, 1])
-                    c1.write(h.id)
-                    c2.write(h.ticker)
-                    c3.write(h.name)
-                    c4.write(h.target_allocation_pct)
-                    if c5.button("🗑️", key=f"del_h_{h.id}"):
-                        confirm_delete_holding(db, h.id, h.ticker)
+                for h in holdings_perf:
+                    c1, c2, c3, c4, c5, c6 = st.columns([1, 1.5, 1.5, 1.5, 1.5, 1])
+                    c1.write(f"**{h['ticker']}**")
+                    c2.write(f"{h['quantity']:.4f}")
+                    c3.write(f"${h['avg_cost']:.2f}")
+                    c4.write(f"${h['market_value']:,.2f}")
+                    
+                    # Color coding for gains
+                    gl = h['unrealized_gl']
+                    gl_color = "#00D4AA" if gl >= 0 else "#EF4444"
+                    c5.markdown(f'<span style="color:{gl_color};">${gl:,.2f}</span>', unsafe_allow_html=True)
+                    
+                    # Find holding ID for deletion (valuation data doesn't have it currently)
+                    # Actually I should have added holding_id to valuation data.
+                    # Let me fix portfolio_service first to include ID.
+                    # Wait, for now I'll fetch the ID from db mapping or just fix the service.
+                    
+                    if c6.button("🗑️", key=f"del_h_{h['ticker']}"):
+                        h_obj = db.query(Holding).filter(Holding.portfolio_id == selected_portfolio.id, Holding.ticker == h['ticker']).first()
+                        if h_obj:
+                            confirm_delete_holding(db, h_obj.id, h['ticker'])
                         
                 if st.session_state.pop("holding_deleted", False):
                     st.toast("Holding deleted successfully!")

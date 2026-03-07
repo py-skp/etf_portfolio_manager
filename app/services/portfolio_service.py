@@ -107,29 +107,60 @@ class PortfolioService:
 
     @staticmethod
     def get_portfolio_valuation(db: Session, portfolio_id: int):
-        """Calculate current valuation of the portfolio"""
+        """Calculate current valuation, gains/losses (Realized & Unrealized) using WAC"""
         holdings = db.query(Holding).filter(Holding.portfolio_id == portfolio_id).all()
         
         valuation_data = []
         total_value = 0
+        total_unrealized_gl = 0
+        total_realized_gl = 0
         
         for holding in holdings:
             # Get latest price
             current_price = DataProvider.get_current_price(holding.ticker) or 0
             
-            # Calculate quantity from transactions
-            transactions = db.query(Transaction).filter(Transaction.holding_id == holding.id).all()
-            total_qty = sum(t.quantity if t.transaction_type == "BUY" else -t.quantity for t in transactions)
+            # Performance tracking logic (WAC)
+            transactions = db.query(Transaction).filter(Transaction.holding_id == holding.id).order_by(Transaction.date.asc()).all()
             
-            market_value = total_qty * current_price
+            shares = 0
+            avg_cost = 0
+            realized_gl = 0
+            total_cost_basis = 0 # total_cost_basis for current shares
+            
+            for t in transactions:
+                t_qty = float(t.quantity)
+                t_price = float(t.price)
+                
+                if t.transaction_type == "BUY":
+                    # Update WAC
+                    new_total_cost = (shares * avg_cost) + (t_qty * t_price)
+                    shares += t_qty
+                    if shares > 0:
+                        avg_cost = new_total_cost / shares
+                        total_cost_basis = shares * avg_cost
+                elif t.transaction_type == "SELL":
+                    # Realize gain/loss
+                    realized_gl += (t_price - avg_cost) * t_qty
+                    shares -= t_qty
+                    # Cost basis for remaining shares decreases proportionally
+                    total_cost_basis = shares * avg_cost
+            
+            market_value = shares * current_price
+            unrealized_gl = (current_price - avg_cost) * shares if shares > 0 else 0
+            
             total_value += market_value
+            total_unrealized_gl += unrealized_gl
+            total_realized_gl += realized_gl
             
             valuation_data.append({
                 "ticker": holding.ticker,
                 "name": holding.name,
-                "quantity": total_qty,
+                "quantity": shares,
                 "price": current_price,
+                "avg_cost": avg_cost,
                 "market_value": market_value,
+                "unrealized_gl": unrealized_gl,
+                "realized_gl": realized_gl,
                 "weight": 0 # Calculate later
             })
             
@@ -140,5 +171,7 @@ class PortfolioService:
                 
         return {
             "total_value": total_value,
+            "total_unrealized_gl": total_unrealized_gl,
+            "total_realized_gl": total_realized_gl,
             "holdings": valuation_data
         }

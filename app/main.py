@@ -51,18 +51,26 @@ def render_dashboard():
     # KPI Row
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     
+    total_val = valuation['total_value']
+    unrealized_gl = valuation['total_unrealized_gl']
+    realized_gl = valuation['total_realized_gl']
+    
+    # Calculate Total Return %
+    cost_basis = total_val - unrealized_gl
+    total_return_pct = (unrealized_gl / cost_basis * 100) if cost_basis > 0 else 0
+    
     with col1:
-        metric_card("Total Value", f"${valuation['total_value']:,.2f}", "+2.4%", icon="💰")
+        metric_card("Total Value", f"${total_val:,.2f}", icon="💰")
     with col2:
-        metric_card("Day Change", "+$1,240", "+1.2%", icon="📈")
+        metric_card("Unrealized G/L", f"${unrealized_gl:,.2f}", f"{total_return_pct:+.1f}%", icon="💹")
     with col3:
-        metric_card("Total Return", "15.4%", "+15.4%", icon="🚀")
+        metric_card("Realized G/L", f"${realized_gl:,.2f}", icon="💵")
     with col4:
-        metric_card("Sharpe Ratio", "1.85", icon="📊")
+        metric_card("Day Change", "+$0.00", "0.0%", icon="📈")
     with col5:
-        metric_card("Max Drawdown", "-8.2%", icon="⚠️")
+        metric_card("Sharpe Ratio", "1.85", icon="📊")
     with col6:
-        metric_card("Dividend Yield", "2.1%", icon="💵")
+        metric_card("Day Return", "0.0%", icon="🚀")
 
     # Charts Row
     st.markdown('<div class="gradient-line"></div>', unsafe_allow_html=True)
@@ -110,7 +118,21 @@ def render_dashboard():
     st.subheader("Current Holdings")
     if valuation['holdings']:
         df_holdings = pd.DataFrame(valuation['holdings'])
-        data_table(df_holdings)
+        # Reorder and rename columns for display
+        df_display = df_holdings[[
+            "ticker", "name", "quantity", "price", "avg_cost", 
+            "market_value", "unrealized_gl", "realized_gl", "weight"
+        ]].copy()
+        
+        format_dict = {
+            "price": "${:,.2f}",
+            "avg_cost": "${:,.2f}",
+            "market_value": "${:,.2f}",
+            "unrealized_gl": "${:,.2f}",
+            "realized_gl": "${:,.2f}",
+            "weight": "{:.2f}%"
+        }
+        data_table(df_display, format_dict=format_dict)
     else:
         st.info("No holdings to display.")
 
