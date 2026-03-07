@@ -2,26 +2,25 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from app.database.connection import SessionLocal
 from app.services.portfolio_service import PortfolioService
+import base64
+from pathlib import Path
+
 
 def sidebar_nav(default_page="Dashboard"):
     with st.sidebar:
-        # Logo area with gradient effect
-        st.markdown("""
+        # Logo area with image
+        logo_path = Path("app/assets/logo.png")
+        logo_b64 = ""
+        if logo_path.exists():
+            with open(logo_path, "rb") as f:
+                logo_b64 = base64.b64encode(f.read()).decode()
+
+        st.markdown(f"""
         <div style="
             text-align: center;
             padding: 1.25rem 0 0.75rem 0;
         ">
-            <h1 style="
-                font-family: 'Inter', sans-serif;
-                font-weight: 800;
-                font-size: 1.6rem;
-                letter-spacing: -0.04em;
-                margin: 0;
-                background: linear-gradient(135deg, #00D4AA 0%, #3B82F6 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            ">Mudric Lab</h1>
+            <img src="data:image/png;base64,{logo_b64}" style="width: 80px; margin-bottom: 8px; border-radius: 8px;">
             <p style="color: #6B7280; font-size: 0.7rem; margin: 2px 0 0 0; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500;">
                 Portfolio Intelligence
             </p>
