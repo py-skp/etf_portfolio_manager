@@ -108,7 +108,7 @@ def render_portfolio_mgmt():
                 st.markdown("<br>", unsafe_allow_html=True)
                 # Header row
                 hc1, hc2, hc3, hc4, hc5, hc6 = st.columns([1, 1.5, 1.5, 1.5, 1.5, 1])
-                hc1.write("**Ticker**")
+                hc1.write("**ETF**")
                 hc2.write("**Shares**")
                 hc3.write("**Avg Cost**")
                 hc4.write("**Market Val**")

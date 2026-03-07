@@ -118,19 +118,26 @@ def render_dashboard():
     st.subheader("Current Holdings")
     if valuation['holdings']:
         df_holdings = pd.DataFrame(valuation['holdings'])
-        # Reorder and rename columns for display
+        
+        # Prepare display dataframe: rename and reorder
         df_display = df_holdings[[
-            "ticker", "name", "quantity", "price", "avg_cost", 
+            "ticker", "quantity", "price", "avg_cost", 
             "market_value", "unrealized_gl", "realized_gl", "weight"
         ]].copy()
         
+        # Rename columns for professional look
+        df_display.columns = [
+            "ETF", "Quantity", "Price", "Avg Cost", 
+            "Market Value", "Unrealized G/L", "Realized G/L", "Weight"
+        ]
+        
         format_dict = {
-            "price": "${:,.2f}",
-            "avg_cost": "${:,.2f}",
-            "market_value": "${:,.2f}",
-            "unrealized_gl": "${:,.2f}",
-            "realized_gl": "${:,.2f}",
-            "weight": "{:.2f}%"
+            "Price": "${:,.2f}",
+            "Avg Cost": "${:,.2f}",
+            "Market Value": "${:,.2f}",
+            "Unrealized G/L": "${:,.2f}",
+            "Realized G/L": "${:,.2f}",
+            "Weight": "{:.2f}%"
         }
         data_table(df_display, format_dict=format_dict)
     else:
