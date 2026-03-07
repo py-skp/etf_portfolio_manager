@@ -7,6 +7,11 @@ from app.database.connection import SessionLocal
 from app.services.portfolio_service import PortfolioService
 from app.services.data_provider import DataProvider
 import plotly.express as px
+from app.database.models import Base
+from app.database.connection import engine
+
+# Create database tables if they don't exist
+Base.metadata.create_all(bind=engine)
 
 # Set page config
 st.set_page_config(

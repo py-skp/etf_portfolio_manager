@@ -1,11 +1,21 @@
 import os
+import streamlit as st
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/mudric_portfolio")
+# Prioritize Streamlit Secrets for Cloud deployment, fallback to environment/local
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    try:
+        DATABASE_URL = st.secrets.get("DATABASE_URL")
+    except:
+        pass
+
+if not DATABASE_URL:
+    DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/mudric_portfolio"
 
 # Create engine with some defaults for performance
 engine = create_engine(

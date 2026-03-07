@@ -1,11 +1,21 @@
 import redis
 import json
 import os
+import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+# Prioritize Streamlit Secrets for Cloud deployment, fallback to environment/local
+REDIS_URL = os.getenv("REDIS_URL")
+if not REDIS_URL:
+    try:
+        REDIS_URL = st.secrets.get("REDIS_URL")
+    except:
+        pass
+
+if not REDIS_URL:
+    REDIS_URL = "redis://redis:6379/0"
 
 class CacheService:
     def __init__(self):
