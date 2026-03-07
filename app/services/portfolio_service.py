@@ -188,22 +188,68 @@ class PortfolioService:
 
     @staticmethod
     def get_portfolio_history(db: Session, portfolio_id: int):
-        """Reconstruct historical valuation (Simplified version for chart sync)"""
+        """Reconstruct historical valuation comparing Invested Capital vs Market Value"""
         val_res = PortfolioService.get_portfolio_valuation(db, portfolio_id)
         current_val = val_res['total_value']
         
-        # In a real app, we'd fetch historical prices for each day.
-        # For now, we'll create a 12-month series that ends at the current value.
+        transactions = db.query(Transaction).filter(Transaction.portfolio_id == portfolio_id).order_by(Transaction.date.asc()).all()
         import pandas as pd
-        from datetime import datetime
-        dates = pd.date_range(end=datetime.now(), periods=12, freq="ME")
+        from datetime import datetime, timedelta
         
-        # Fake historical growth curve for visualization
-        import numpy as np
-        # Generate some random historical values that lead to the current one
-        vals = [current_val * (0.85 + 0.15 * (i/11)) for i in range(12)]
+        if not transactions:
+            return pd.DataFrame()
+            
+        start_date = transactions[0].date
+        end_date = datetime.now()
         
-        return pd.DataFrame({
-            "Date": dates,
-            "Value": vals
-        })
+        # If the first transaction was today, just return a single point
+        if (end_date - start_date).days < 1:
+            return pd.DataFrame([{
+                "Date": end_date, 
+                "Invested Capital": current_val, 
+                "Market Value": current_val
+            }])
+
+        # Calculate Total Cost Basis
+        # We can sum up (quantity * avg_cost) from the holdings, or simplify by netting cash flows.
+        # For a clean chart, we'll track cumulative net cash flow (principal).
+        total_principal = sum((t.price * t.quantity) if t.transaction_type == "BUY" else -(t.price * t.quantity) for t in transactions)
+        
+        # Total ROI
+        if total_principal > 0:
+            total_gain_pct = (current_val - total_principal) / total_principal
+        else:
+            total_gain_pct = 0.0
+            
+        total_days = (end_date - start_date).days
+        daily_gain_pct = total_gain_pct / total_days if total_days > 0 else 0
+        
+        # Generate roughly monthly points for performance
+        dates = pd.date_range(start=start_date, end=end_date, freq="W")
+        # Ensure end date is included
+        if len(dates) == 0 or dates[-1] != end_date:
+            dates = dates.append(pd.DatetimeIndex([end_date]))
+            
+        history = []
+        for d in dates:
+            # Principal up to this date
+            past_txs = [t for t in transactions if t.date <= d]
+            invested = sum((t.price * t.quantity) if t.transaction_type == "BUY" else -(t.price * t.quantity) for t in past_txs)
+            
+            # Prorated gain
+            days_passed = (d - start_date).days
+            prorated_gain = daily_gain_pct * days_passed
+            
+            est_market_value = invested * (1 + prorated_gain)
+            
+            # Guarantee the last point perfectly matches the real live dashboard value
+            if d == end_date:
+                est_market_value = current_val
+                
+            history.append({
+                "Date": d,
+                "Invested Capital": invested,
+                "Market Value": est_market_value
+            })
+            
+        return pd.DataFrame(history)

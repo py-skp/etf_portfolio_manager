@@ -79,17 +79,36 @@ def render_dashboard():
     with c1:
         st.subheader("Performance Over Time")
         df_hist = PortfolioService.get_portfolio_history(db, selected_portfolio.id)
-        fig = px.area(df_hist, x="Date", y="Value", color_discrete_sequence=["#00D4AA"])
-        fig.update_layout(
-            paper_bgcolor="#131722",
-            plot_bgcolor="#131722",
-            font=dict(family="Inter, sans-serif", color="#E8EAED"),
-            xaxis=dict(showgrid=False, zeroline=False),
-            yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", zeroline=False),
-            margin=dict(l=20, r=20, t=30, b=20)
-        )
-        fig.update_traces(fillcolor="rgba(0, 212, 170, 0.08)", line=dict(width=2.5))
-        st.plotly_chart(fig, use_container_width=True)
+        
+        if not df_hist.empty:
+            fig = px.line(
+                df_hist, 
+                x="Date", 
+                y=["Invested Capital", "Market Value"], 
+                color_discrete_sequence=["#4B5563", "#00D4AA"]
+            )
+            # Fill under the market value line for that area chart feel
+            fig.update_traces(fill='tonexty', selector=dict(name="Market Value"))
+            
+            fig.update_layout(
+                paper_bgcolor="#131722",
+                plot_bgcolor="#131722",
+                font=dict(family="Inter, sans-serif", color="#E8EAED"),
+                xaxis=dict(showgrid=False, zeroline=False, title=""),
+                yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", zeroline=False, title=""),
+                margin=dict(l=20, r=20, t=30, b=20),
+                legend=dict(
+                    title=None,
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1
+                )
+            )
+            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+        else:
+            st.info("No transaction history available to display performance.")
 
     with c2:
         st.subheader("Allocation by Asset")
