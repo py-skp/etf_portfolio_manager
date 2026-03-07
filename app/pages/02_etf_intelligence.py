@@ -100,8 +100,8 @@ def render_etf_intelligence():
         """, unsafe_allow_html=True)
 
         # Tabs
-        tab_hold, tab_sec, tab_geo, tab_perf, tab_ana, tab_analyst = st.tabs([
-            "Holdings", "Sector Exposure", "Geographic Exposure", "Performance", "Analytics", "Analyst View"
+        tab_hold, tab_sec, tab_geo, tab_perf, tab_ana = st.tabs([
+            "Holdings", "Sector Exposure", "Geographic Exposure", "Performance", "Analytics"
         ])
 
         with tab_hold:
@@ -231,56 +231,7 @@ def render_etf_intelligence():
             else:
                 st.info("Analytics require price history.")
 
-        with tab_analyst:
-             st.markdown("### Analyst Consensus")
-             
-             # Check for keys in session state or environment
-             import os
-             api_keys = st.session_state.get("api_keys", {})
-             av_key = api_keys.get("ALPHA_VANTAGE_API_KEY") or os.environ.get("ALPHA_VANTAGE_API_KEY")
-             fmp_key = api_keys.get("FMP_API_KEY") or os.environ.get("FMP_API_KEY")
-             
-             if not av_key and not fmp_key:
-                 st.info("Premium analyst data (Financial Modeling Prep / Alpha Vantage) is currently not configured.")
-                 st.markdown("""
-                 > Please add your API keys directly in the **Settings module** to enable premium fundamental data streams including:
-                 > - Consensus Buy/Hold/Sell ratings
-                 > - Price targets
-                 > - Factor Analysis
-                 """)
-             else:
-                 st.success("Premium API keys detected!")
-                 
-                 if av_key:
-                     st.markdown("#### Latest Alpha Vantage Quote")
-                     import requests
-                     with st.spinner("Fetching live premium data..."):
-                         try:
-                             url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={selected_ticker}&apikey={av_key}"
-                             response = requests.get(url)
-                             data = response.json()
-                             
-                             if "Global Quote" in data and data["Global Quote"]:
-                                 quote = data["Global Quote"]
-                                 
-                                 c1, c2, c3 = st.columns(3)
-                                 with c1:
-                                     metric_card("Live Price", f"${float(quote.get('05. price', 0)):.2f}")
-                                 with c2:
-                                     metric_card("Trading Volume", f"{int(quote.get('06. volume', 0)):,}")
-                                 with c3:
-                                     metric_card("Latest Trading Day", quote.get('07. latest trading day', 'N/A'))
-                                     
-                                 st.markdown("---")
-                                 st.markdown(f"**Previous Close:** ${float(quote.get('08. previous close', 0)):.2f} | **Change:** {quote.get('10. change percent', 'N/A')}")
-                             elif "Information" in data:
-                                 st.warning(f"Alpha Vantage limit reached or endpoint restricted: {data['Information']}")
-                             else:
-                                 st.warning("No premium overview data available for this specific ticker on Alpha Vantage.")
-                         except Exception as e:
-                             st.error(f"Error fetching data from Alpha Vantage: {str(e)}")
-                 else:
-                     st.info("FMP key detected. Integration for FMP analyst targets coming soon.")
+
 
     # The ETF Comparison tool has been moved to the Performance page
 if __name__ == "__main__":
