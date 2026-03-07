@@ -36,8 +36,7 @@ def render_portfolio_mgmt():
         selected_portfolio = st.selectbox("Portfolio", options=portfolios, format_func=lambda x: x.name, index=select_index)
     
     with col2:
-        if st.button("+ New Portfolio"):
-            # This would normally be a modal or expansion
+        with st.popover("+ New Portfolio", use_container_width=True):
             with st.form("new_portfolio_form"):
                 name = st.text_input("Portfolio Name")
                 desc = st.text_area("Description")
