@@ -81,12 +81,22 @@ def render_dashboard():
         df_hist = PortfolioService.get_portfolio_history(db, selected_portfolio.id)
         
         if not df_hist.empty:
+            # Calculate Gain/Loss for tooltip
+            df_hist["Gain/Loss"] = df_hist["Market Value"] - df_hist["Invested Capital"]
+            
             fig = px.line(
                 df_hist, 
                 x="Date", 
                 y=["Invested Capital", "Market Value"], 
-                color_discrete_sequence=["#4B5563", "#00D4AA"]
+                color_discrete_sequence=["#4B5563", "#00D4AA"],
+                custom_data=["Gain/Loss"]
             )
+            
+            # Format tooltips as exact currency and style
+            fig.update_traces(
+                hovertemplate="<b>Date</b>: %{x}<br><b>Value</b>: $%{y:,.2f}<br><b>Gain/Loss</b>: $%{customdata[0]:,.2f}<extra></extra>"
+            )
+            
             # Fill under the market value line for that area chart feel
             fig.update_traces(fill='tonexty', selector=dict(name="Market Value"))
             
@@ -95,7 +105,8 @@ def render_dashboard():
                 plot_bgcolor="#131722",
                 font=dict(family="Inter, sans-serif", color="#E8EAED"),
                 xaxis=dict(showgrid=False, zeroline=False, title=""),
-                yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", zeroline=False, title=""),
+                yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", zeroline=False, title="", tickformat="$,.0f"),
+                hovermode="x unified",
                 margin=dict(l=20, r=20, t=30, b=20),
                 legend=dict(
                     title=None,
