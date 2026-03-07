@@ -145,6 +145,8 @@ def render_portfolio_mgmt():
 
         with tab2:
             st.subheader("Transaction History")
+            # Need to fetch holdings for the dropdown
+            holdings = db.query(Holding).filter(Holding.portfolio_id == selected_portfolio.id).all()
             with st.expander("Record Transaction"):
                 # Simplified form for Phase 1
                 with st.form("transaction_form"):
@@ -159,17 +161,17 @@ def render_portfolio_mgmt():
                         h = db.query(Holding).filter(Holding.portfolio_id == selected_portfolio.id, Holding.ticker == h_ticker).first()
                         if h:
                             new_t = Transaction(
-                            portfolio_id=selected_portfolio.id,
-                            holding_id=h.id,
-                            transaction_type=t_type,
-                            quantity=qty,
-                            price=price,
-                            date=datetime.combine(date, datetime.min.time())
-                        )
-                        db.add(new_t)
-                        db.commit()
-                        st.success("Transaction recorded!")
-                        st.rerun()
+                                portfolio_id=selected_portfolio.id,
+                                holding_id=h.id,
+                                transaction_type=t_type,
+                                quantity=qty,
+                                price=price,
+                                date=datetime.combine(date, datetime.min.time())
+                            )
+                            db.add(new_t)
+                            db.commit()
+                            st.success("Transaction recorded!")
+                            st.rerun()
             
             # List transactions
             transactions = db.query(Transaction).filter(Transaction.portfolio_id == selected_portfolio.id).all()
