@@ -23,19 +23,24 @@ def sidebar_nav(default_page="Dashboard"):
             flex-direction: column;
             align-items: center;
         ">
-            <img src="data:image/png;base64,{logo_b64}" style="width: 50px; margin-bottom: 6px; border-radius: 8px;">
+            <img src="data:image/png;base64,{logo_b64}" style="
+                width: 85px; 
+                margin-bottom: 2px;
+                filter: invert(1) brightness(0.9);
+                mix-blend-mode: screen;
+            ">
             <h1 style="
                 font-family: 'Inter', sans-serif;
                 font-weight: 800;
-                font-size: 1.5rem;
-                letter-spacing: -0.04em;
+                font-size: 1.6rem;
+                letter-spacing: -0.02em;
                 margin: 0;
-                background: linear-gradient(135deg, #00D4AA 0%, #3B82F6 100%);
+                background: linear-gradient(135deg, #E8EAED 0%, #9CA3AF 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
             ">Mudric Lab</h1>
-            <p style="color: #6B7280; font-size: 0.7rem; margin: 2px 0 0 0; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500;">
+            <p style="color: #00D4AA; font-size: 0.65rem; margin: 2px 0 0 0; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600;">
                 Portfolio Intelligence
             </p>
         </div>
