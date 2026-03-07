@@ -23,7 +23,17 @@ def render_portfolio_mgmt():
     col1, col2 = st.columns([3, 1])
     with col1:
         portfolios = PortfolioService.get_portfolios(db)
-        selected_portfolio = st.selectbox("Portfolio", options=portfolios, format_func=lambda x: x.name)
+        
+        # Pre-select newly created portfolio using session state
+        select_index = 0
+        if 'newly_created_portfolio_id' in st.session_state:
+            for i, p in enumerate(portfolios):
+                if p.id == st.session_state.newly_created_portfolio_id:
+                    select_index = i
+                    break
+            del st.session_state.newly_created_portfolio_id
+            
+        selected_portfolio = st.selectbox("Portfolio", options=portfolios, format_func=lambda x: x.name, index=select_index)
     
     with col2:
         if st.button("+ New Portfolio"):
@@ -33,7 +43,8 @@ def render_portfolio_mgmt():
                 desc = st.text_area("Description")
                 submitted = st.form_submit_button("Create")
                 if submitted and name:
-                    PortfolioService.create_portfolio(db, name, desc)
+                    new_p = PortfolioService.create_portfolio(db, name, desc)
+                    st.session_state.newly_created_portfolio_id = new_p.id
                     st.success(f"Portfolio '{name}' created!")
                     st.rerun()
 
@@ -96,19 +107,37 @@ def render_portfolio_mgmt():
             transactions = db.query(Transaction).filter(Transaction.portfolio_id == selected_portfolio.id).all()
             if transactions:
                 df_t = pd.DataFrame([{
-                    "Date": t.date,
+                    "ID": t.id,
+                    "Date": t.date.strftime("%Y-%m-%d"),
                     "Ticker": t.holding.ticker,
                     "Type": t.transaction_type,
                     "Qty": t.quantity,
-                    "Price": t.price,
+                    "Price": f"${t.price:.2f}",
                 } for t in transactions])
                 data_table(df_t)
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                with st.expander("Delete Transaction"):
+                    t_options = {t.id: f"{t.date.strftime('%Y-%m-%d')} - {t.transaction_type} {t.quantity} {t.holding.ticker} @ ${t.price:.2f}" for t in transactions}
+                    t_to_delete = st.selectbox("Select Transaction to Delete", options=list(t_options.keys()), format_func=lambda x: t_options[x])
+                    if st.button("Delete Selected Transaction", type="primary"):
+                        if PortfolioService.delete_transaction(db, t_to_delete):
+                            st.success("Transaction deleted!")
+                            st.rerun()
             else:
                 st.info("No transactions found.")
 
         with tab3:
             st.subheader("Import Portfolios")
             st.file_uploader("Upload CSV (Coming Soon in Phase 6)", type=["csv"])
+            
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        with st.expander("Danger Zone"):
+            st.warning("Deleting a portfolio will permanently remove all its holdings and transactions.")
+            if st.button("Delete This Portfolio", type="primary"):
+                PortfolioService.delete_portfolio(db, selected_portfolio.id)
+                st.success("Portfolio deleted.")
+                st.rerun()
 
     db.close()
 

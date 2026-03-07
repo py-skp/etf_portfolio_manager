@@ -22,6 +22,15 @@ class PortfolioService:
         return new_portfolio
 
     @staticmethod
+    def delete_portfolio(db: Session, portfolio_id: int):
+        portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+        if portfolio:
+            db.delete(portfolio)
+            db.commit()
+            return True
+        return False
+
+    @staticmethod
     def add_holding(db: Session, portfolio_id: int, ticker: str, name: str = "", asset_type: str = "ETF", target_pct: float = 0.0):
         new_holding = Holding(
             portfolio_id=portfolio_id,
@@ -34,6 +43,15 @@ class PortfolioService:
         db.commit()
         db.refresh(new_holding)
         return new_holding
+
+    @staticmethod
+    def delete_transaction(db: Session, transaction_id: int):
+        transaction = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+        if transaction:
+            db.delete(transaction)
+            db.commit()
+            return True
+        return False
 
     @staticmethod
     def get_portfolio_valuation(db: Session, portfolio_id: int):
