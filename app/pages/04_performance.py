@@ -9,6 +9,7 @@ from app.components.styles import inject_global_css
 from app.components.metrics import section_header
 from app.components.tables import data_table
 from app.services.data_provider import DataProvider
+from app.database.models import Holding
 
 def format_large_number(num):
     if num is None:
