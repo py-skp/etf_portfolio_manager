@@ -4,7 +4,7 @@ import os
 import streamlit as st
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Prioritize Streamlit Secrets for Cloud deployment, fallback to environment/local
 REDIS_URL = os.getenv("REDIS_URL")

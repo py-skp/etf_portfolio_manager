@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Prioritize Streamlit Secrets for Cloud deployment, fallback to environment/local
 DATABASE_URL = os.getenv("DATABASE_URL")
