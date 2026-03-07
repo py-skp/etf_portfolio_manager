@@ -100,6 +100,8 @@ def render_portfolio_mgmt():
                         else:
                             st.error(f"Ticker {ticker.upper()} already exists in this portfolio.")
             
+            # Show existing holdings
+            holdings = db.query(Holding).filter(Holding.portfolio_id == selected_portfolio.id).all()
             if holdings:
                 st.markdown("<br>", unsafe_allow_html=True)
                 # Header row
