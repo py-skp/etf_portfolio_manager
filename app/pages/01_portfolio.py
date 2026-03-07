@@ -24,16 +24,34 @@ def render_portfolio_mgmt():
     with col1:
         portfolios = PortfolioService.get_portfolios(db)
         
-        # Pre-select newly created portfolio using session state
-        select_index = 0
+        # Maintain active portfolio state across reruns robustly
+        if 'active_portfolio_id' not in st.session_state:
+            st.session_state.active_portfolio_id = portfolios[0].id if portfolios else None
+            
         if 'newly_created_portfolio_id' in st.session_state:
+            st.session_state.active_portfolio_id = st.session_state.newly_created_portfolio_id
+            del st.session_state.newly_created_portfolio_id
+
+        select_index = 0
+        if st.session_state.active_portfolio_id:
             for i, p in enumerate(portfolios):
-                if p.id == st.session_state.newly_created_portfolio_id:
+                if p.id == st.session_state.active_portfolio_id:
                     select_index = i
                     break
-            del st.session_state.newly_created_portfolio_id
-            
-        selected_portfolio = st.selectbox("Portfolio", options=portfolios, format_func=lambda x: x.name, index=select_index)
+
+        def on_portfolio_change():
+            selected_p = st.session_state.portfolio_selector
+            if selected_p:
+                st.session_state.active_portfolio_id = selected_p.id
+
+        selected_portfolio = st.selectbox(
+            "Portfolio", 
+            options=portfolios, 
+            format_func=lambda x: x.name, 
+            index=select_index,
+            key="portfolio_selector",
+            on_change=on_portfolio_change
+        )
     
     with col2:
         with st.popover("+ New Portfolio", use_container_width=True):
@@ -135,6 +153,7 @@ def render_portfolio_mgmt():
             st.warning("Deleting a portfolio will permanently remove all its holdings and transactions.")
             if st.button("Delete This Portfolio", type="primary"):
                 PortfolioService.delete_portfolio(db, selected_portfolio.id)
+                st.session_state.active_portfolio_id = None
                 st.success("Portfolio deleted.")
                 st.rerun()
 
