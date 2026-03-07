@@ -59,6 +59,44 @@ class PortfolioService:
         return False
 
     @staticmethod
+    def bulk_import_transactions(db: Session, portfolio_id: int, transactions_data: list):
+        """
+        Expects a list of dicts: [{'ticker': 'AAPL', 'date': datetime, 'type': 'BUY', 'quantity': 10, 'price': 150.0}]
+        """
+        import_count = 0
+        for data in transactions_data:
+            ticker = data['ticker'].upper()
+            
+            # 1. Ensure holding exists
+            holding = db.query(Holding).filter(Holding.portfolio_id == portfolio_id, Holding.ticker == ticker).first()
+            if not holding:
+                holding = Holding(
+                    portfolio_id=portfolio_id,
+                    ticker=ticker,
+                    name=ticker, # Default to ticker if name unknown
+                    asset_type="ETF",
+                    target_allocation_pct=0.0
+                )
+                db.add(holding)
+                db.commit()
+                db.refresh(holding)
+            
+            # 2. Add transaction
+            new_t = Transaction(
+                portfolio_id=portfolio_id,
+                holding_id=holding.id,
+                transaction_type=data['type'],
+                quantity=data['quantity'],
+                price=data['price'],
+                date=data['date']
+            )
+            db.add(new_t)
+            import_count += 1
+            
+        db.commit()
+        return import_count
+
+    @staticmethod
     def delete_transaction(db: Session, transaction_id: int):
         transaction = db.query(Transaction).filter(Transaction.id == transaction_id).first()
         if transaction:

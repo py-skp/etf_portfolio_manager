@@ -188,7 +188,72 @@ def render_portfolio_mgmt():
 
         with tab3:
             st.subheader("Import Portfolios")
-            st.file_uploader("Upload CSV (Coming Soon in Phase 6)", type=["csv"])
+            st.info("Upload a CSV file to bulk-import holdings and transactions. We support the standard export format (looking for Symbol, Trade Date, Purchase Price, Quantity).")
+            
+            # Template Download
+            template_csv = "Symbol,Trade Date,Purchase Price,Quantity,Transaction Type\nQQQM,20260226,249.94,2,BUY\nVOO,20251107,608.09,1,BUY"
+            st.download_button(
+                label="📥 Download CSV Template",
+                data=template_csv,
+                file_name="mudric_import_template.csv",
+                mime="text/csv",
+                help="Download a sample CSV file with the required headers."
+            )
+            
+            uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+            if uploaded_file is not None:
+                try:
+                    df_import = pd.read_csv(uploaded_file)
+                    
+                    # Mapping standard columns
+                    col_map = {
+                        'Symbol': 'ticker',
+                        'Trade Date': 'date',
+                        'Purchase Price': 'price',
+                        'Quantity': 'qty',
+                        'Transaction Type': 'type'
+                    }
+                    
+                    # Check for required columns
+                    missing = [c for c in ['Symbol', 'Trade Date', 'Purchase Price', 'Quantity'] if c not in df_import.columns]
+                    if missing:
+                        st.error(f"Missing required columns in CSV: {', '.join(missing)}")
+                    else:
+                        st.write(f"📂 Found {len(df_import)} rows. Processing...")
+                        import_data = []
+                        for _, row in df_import.iterrows():
+                            # Parse Date
+                            raw_date = str(row['Trade Date'])
+                            try:
+                                if len(raw_date) == 8: # YYYYMMDD
+                                    parsed_date = datetime.strptime(raw_date, '%Y%m%d')
+                                else:
+                                    parsed_date = pd.to_datetime(raw_date).to_pydatetime()
+                            except:
+                                parsed_date = datetime.now()
+                                
+                            qty = float(row['Quantity'])
+                            # Infer Type if missing
+                            t_type = "BUY"
+                            if 'Transaction Type' in row and pd.notna(row['Transaction Type']):
+                                t_type = str(row['Transaction Type']).upper()
+                            else:
+                                t_type = "BUY" if qty >= 0 else "SELL"
+                                
+                            import_data.append({
+                                'ticker': str(row['Symbol']).upper(),
+                                'date': parsed_date,
+                                'type': t_type,
+                                'quantity': abs(qty),
+                                'price': float(row['Purchase Price'])
+                            })
+                        
+                        if st.button("Confirm & Import All"):
+                            count = PortfolioService.bulk_import_transactions(db, selected_portfolio.id, import_data)
+                            st.success(f"Successfully imported {count} transactions!")
+                            st.rerun()
+                except Exception as e:
+                    st.error(f"Error processing CSV: {str(e)}")
             
         st.markdown("<br><br>", unsafe_allow_html=True)
         with st.expander("Danger Zone"):
