@@ -1,5 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
+from app.database.connection import SessionLocal
+from app.services.portfolio_service import PortfolioService
 
 def sidebar_nav(default_page="Dashboard"):
     with st.sidebar:
@@ -29,7 +31,16 @@ def sidebar_nav(default_page="Dashboard"):
         st.markdown('<div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 0.5rem 0;"></div>', unsafe_allow_html=True)
         
         # Portfolio Summary Widget
-        st.markdown("""
+        db = SessionLocal()
+        try:
+            total_val = PortfolioService.get_total_valuation(db)
+            formatted_val = f"${total_val:,.0f}"
+        except:
+            formatted_val = "$0"
+        finally:
+            db.close()
+
+        st.markdown(f"""
         <div style="
             background: rgba(0, 212, 170, 0.06);
             border: 1px solid rgba(0, 212, 170, 0.12);
@@ -38,8 +49,8 @@ def sidebar_nav(default_page="Dashboard"):
             margin: 0.5rem 0;
         ">
             <div style="color: #6B7280; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">Portfolio Value</div>
-            <div style="color: #E8EAED; font-size: 1.3rem; font-weight: 700; margin: 4px 0 2px 0;">$124,500</div>
-            <div style="color: #00D4AA; font-size: 0.75rem; font-weight: 500;">▲ +2.5% today</div>
+            <div style="color: #E8EAED; font-size: 1.3rem; font-weight: 700; margin: 4px 0 2px 0;">{formatted_val}</div>
+            <div style="color: #00D4AA; font-size: 0.75rem; font-weight: 500;">▲ Real-time Value</div>
         </div>
         """, unsafe_allow_html=True)
         

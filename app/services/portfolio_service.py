@@ -175,3 +175,34 @@ class PortfolioService:
             "total_realized_gl": total_realized_gl,
             "holdings": valuation_data
         }
+
+    @staticmethod
+    def get_total_valuation(db: Session):
+        """Calculate the sum of all portfolio valuations for the sidebar"""
+        portfolios = db.query(Portfolio).all()
+        grand_total = 0
+        for p in portfolios:
+            val = PortfolioService.get_portfolio_valuation(db, p.id)
+            grand_total += val['total_value']
+        return grand_total
+
+    @staticmethod
+    def get_portfolio_history(db: Session, portfolio_id: int):
+        """Reconstruct historical valuation (Simplified version for chart sync)"""
+        val_res = PortfolioService.get_portfolio_valuation(db, portfolio_id)
+        current_val = val_res['total_value']
+        
+        # In a real app, we'd fetch historical prices for each day.
+        # For now, we'll create a 12-month series that ends at the current value.
+        import pandas as pd
+        dates = pd.date_range(end=datetime.now(), periods=12, freq="ME")
+        
+        # Fake historical growth curve for visualization
+        import numpy as np
+        # Generate some random historical values that lead to the current one
+        vals = [current_val * (0.85 + 0.15 * (i/11)) for i in range(12)]
+        
+        return pd.DataFrame({
+            "Date": dates,
+            "Value": vals
+        })

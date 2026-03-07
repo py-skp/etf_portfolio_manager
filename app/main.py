@@ -78,10 +78,7 @@ def render_dashboard():
     
     with c1:
         st.subheader("Performance Over Time")
-        df_hist = pd.DataFrame({
-            "Date": pd.date_range(start="2023-01-01", periods=12, freq="M"),
-            "Value": [100000, 102000, 101500, 105000, 108000, 110000, 112000, 115000, 114000, 118000, 122000, 124500]
-        })
+        df_hist = PortfolioService.get_portfolio_history(db, selected_portfolio.id)
         fig = px.area(df_hist, x="Date", y="Value", color_discrete_sequence=["#00D4AA"])
         fig.update_layout(
             paper_bgcolor="#131722",
