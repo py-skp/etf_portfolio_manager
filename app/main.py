@@ -31,6 +31,15 @@ def main():
     # Sidebar Navigation
     selected_page = sidebar_nav("Dashboard")
     
+    # Run maintenance cleanup once per session
+    if "maintenance_done" not in st.session_state:
+        db = SessionLocal()
+        try:
+            PortfolioService.cleanup_stale_portfolios(db)
+            st.session_state.maintenance_done = True
+        finally:
+            db.close()
+    
     # Page Routing
     if selected_page == "Dashboard":
         render_dashboard()
@@ -41,7 +50,7 @@ def render_dashboard():
     section_header("Executive Portfolio Dashboard", "Comprehensive institutional-grade analytics.")
     
     db = SessionLocal()
-    portfolios = PortfolioService.get_portfolios(db)
+    portfolios = PortfolioService.get_portfolios(db, workspace_id=st.session_state.get("workspace_id", "default"))
     
     if not portfolios:
         st.warning("No portfolios found. Please go to the 'Portfolio' page to create one or run the seed script.")

@@ -33,8 +33,9 @@ def render_performance():
     from app.database.connection import SessionLocal
     db = SessionLocal()
     
-    # Fetch all tickers across all user portfolios for the multiselect options
-    portfolio_holdings = db.query(Holding.ticker).distinct().all()
+    # Fetch all tickers across user portfolios in the active workspace
+    ws_id = st.session_state.get("workspace_id", "default")
+    portfolio_holdings = db.query(Holding.ticker).join(Portfolio).filter(Portfolio.workspace_id == ws_id).distinct().all()
     portfolio_tickers = [h[0] for h in portfolio_holdings]
     
     # Initialize session state for additional search tickers if not present

@@ -37,8 +37,9 @@ def render_portfolio_mgmt():
     
     # Portfolio Selector/Creator
     col1, col2 = st.columns([3, 1])
+    ws_id = st.session_state.get("workspace_id", "default")
     with col1:
-        portfolios = PortfolioService.get_portfolios(db)
+        portfolios = PortfolioService.get_portfolios(db, workspace_id=ws_id)
         
         # Maintain active portfolio state across reruns robustly
         if 'active_portfolio_id' not in st.session_state:
@@ -76,9 +77,9 @@ def render_portfolio_mgmt():
                 desc = st.text_area("Description")
                 submitted = st.form_submit_button("Create")
                 if submitted and name:
-                    new_p = PortfolioService.create_portfolio(db, name, desc)
+                    new_p = PortfolioService.create_portfolio(db, name, desc, workspace_id=ws_id)
                     st.session_state.newly_created_portfolio_id = new_p.id
-                    st.success(f"Portfolio '{name}' created!")
+                    st.success(f"Portfolio '{name}' created in workspace '{ws_id}'!")
                     st.rerun()
 
     if selected_portfolio:

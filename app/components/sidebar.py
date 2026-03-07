@@ -48,10 +48,20 @@ def sidebar_nav(default_page="Dashboard"):
 
         st.markdown('<div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent); margin: 0.5rem 0;"></div>', unsafe_allow_html=True)
         
+        # Workspace Selector
+        if "workspace_id" not in st.session_state:
+            st.session_state.workspace_id = "default"
+            
+        with st.expander("🌐 Workspace Setup", expanded=False):
+            ws_input = st.text_input("Access Code / Name", value=st.session_state.workspace_id, help="Portfolios are isolated by workspace name. Enter a unique name to see your data.").strip()
+            if ws_input and ws_input != st.session_state.workspace_id:
+                st.session_state.workspace_id = ws_input
+                st.rerun()
+
         # Portfolio Summary Widget
         db = SessionLocal()
         try:
-            total_val = PortfolioService.get_total_valuation(db)
+            total_val = PortfolioService.get_total_valuation(db, workspace_id=st.session_state.workspace_id)
             formatted_val = f"${total_val:,.0f}"
         except:
             formatted_val = "$0"
@@ -66,10 +76,10 @@ def sidebar_nav(default_page="Dashboard"):
             padding: 12px 14px;
             margin: 0.5rem 0;
         ">
-            <div style="color: #6B7280; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">Portfolio Value</div>
+            <div style="color: #6B7280; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">Workspace: {st.session_state.workspace_id}</div>
             <div style="color: #E8EAED; font-size: 1.3rem; font-weight: 700; margin: 4px 0 2px 0;">{formatted_val}</div>
-            <div style="color: #00D4AA; font-size: 0.75rem; font-weight: 500; cursor: help;" title="Market data is fetched via standard APIs and cached to prevent rate limits. Prices automatically refresh hourly, or manually using the refresh button below.">
-                ▲ Current Value ⓘ
+            <div style="color: #00D4AA; font-size: 0.75rem; font-weight: 500; cursor: help;" title="Market data is fetched via standard APIs and cached to prevent rate limits. Prices automatically refresh hourly.">
+                ▲ Portfolio Value ⓘ
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -161,11 +171,8 @@ def sidebar_nav(default_page="Dashboard"):
                 st.toast(f"The {selected} module is planned for a future phase.", icon="🚀")
         
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🔄 Refresh Market Data", use_container_width=True, help="Force-fetch the latest prices by clearing cached data"):
-            from app.services.cache_service import cache_service
-            cache_service.clear_all()
-            st.toast("Market data cache cleared. Fetching latest prices...", icon="✅")
-            st.rerun()
+        if st.button("🔄 Refresh Market Data", use_container_width=True, disabled=True, help="Manual refresh is restricted in the public POC to save API limits. Market prices refresh automatically every hour."):
+            pass
 
         # Footer
         st.markdown("""

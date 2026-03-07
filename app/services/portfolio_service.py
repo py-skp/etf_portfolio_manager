@@ -5,16 +5,17 @@ import pandas as pd
 
 class PortfolioService:
     @staticmethod
-    def get_portfolios(db: Session):
-        return db.query(Portfolio).all()
+    def get_portfolios(db: Session, workspace_id: str = "default"):
+        return db.query(Portfolio).filter(Portfolio.workspace_id == workspace_id).all()
 
     @staticmethod
-    def create_portfolio(db: Session, name: str, description: str = "", currency: str = "USD", benchmark: str = "SPY"):
+    def create_portfolio(db: Session, name: str, description: str = "", currency: str = "USD", benchmark: str = "SPY", workspace_id: str = "default"):
         new_portfolio = Portfolio(
             name=name,
             description=description,
             currency=currency,
-            benchmark_ticker=benchmark
+            benchmark_ticker=benchmark,
+            workspace_id=workspace_id
         )
         db.add(new_portfolio)
         db.commit()
@@ -177,9 +178,9 @@ class PortfolioService:
         }
 
     @staticmethod
-    def get_total_valuation(db: Session):
+    def get_total_valuation(db: Session, workspace_id: str = "default"):
         """Calculate the sum of all portfolio valuations for the sidebar"""
-        portfolios = db.query(Portfolio).all()
+        portfolios = db.query(Portfolio).filter(Portfolio.workspace_id == workspace_id).all()
         grand_total = 0
         for p in portfolios:
             val = PortfolioService.get_portfolio_valuation(db, p.id)
@@ -253,3 +254,17 @@ class PortfolioService:
             })
             
         return pd.DataFrame(history)
+
+    @staticmethod
+    def cleanup_stale_portfolios(db: Session):
+        """Delete portfolios that haven't been updated in 30 days (POC maintenance)"""
+        from datetime import datetime, timedelta
+        cutoff = datetime.utcnow() - timedelta(days=30)
+        stale_portfolios = db.query(Portfolio).filter(Portfolio.updated_at < cutoff).all()
+        count = 0
+        for p in stale_portfolios:
+            db.delete(p)
+            count += 1
+        if count > 0:
+            db.commit()
+        return count

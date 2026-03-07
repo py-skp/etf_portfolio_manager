@@ -14,6 +14,7 @@ class Portfolio(Base):
     description = Column(Text)
     currency = Column(String(10), default="USD")
     benchmark_ticker = Column(String(20), default="SPY")
+    workspace_id = Column(String(50), default="default", index=True)
     is_default = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
