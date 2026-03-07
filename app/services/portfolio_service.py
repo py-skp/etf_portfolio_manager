@@ -195,6 +195,7 @@ class PortfolioService:
         # In a real app, we'd fetch historical prices for each day.
         # For now, we'll create a 12-month series that ends at the current value.
         import pandas as pd
+        from datetime import datetime
         dates = pd.date_range(end=datetime.now(), periods=12, freq="ME")
         
         # Fake historical growth curve for visualization
