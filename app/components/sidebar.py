@@ -69,7 +69,7 @@ def sidebar_nav(default_page="Dashboard"):
             <div style="color: #6B7280; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;">Portfolio Value</div>
             <div style="color: #E8EAED; font-size: 1.3rem; font-weight: 700; margin: 4px 0 2px 0;">{formatted_val}</div>
             <div style="color: #00D4AA; font-size: 0.75rem; font-weight: 500; cursor: help;" title="Market data is fetched via standard APIs and cached to prevent rate limits. Prices automatically refresh hourly, or manually using the refresh button below.">
-                ▲ Current Value ⓘ
+                [+] Current Value (i)
             </div>
         </div>
         """, unsafe_allow_html=True)
