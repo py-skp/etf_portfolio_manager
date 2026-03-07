@@ -158,6 +158,13 @@ def sidebar_nav(default_page="Dashboard"):
             else:
                 st.toast(f"The {selected} module is planned for a future phase.", icon="🚀")
         
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🔄 Refresh Market Data", use_container_width=True, help="Force-fetch the latest prices by clearing cached data"):
+            from app.services.cache_service import cache_service
+            cache_service.clear_all()
+            st.toast("Market data cache cleared. Fetching latest prices...", icon="✅")
+            st.rerun()
+
         # Footer
         st.markdown("""
         <div style="

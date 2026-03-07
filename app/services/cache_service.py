@@ -40,5 +40,14 @@ class CacheService:
         except Exception:
             return False
 
+    def clear_all(self):
+        """Flushes the entire cache database."""
+        if not self.client:
+            return False
+        try:
+            return self.client.flushdb()
+        except Exception:
+            return False
+
 # Singleton instance
 cache_service = CacheService()
