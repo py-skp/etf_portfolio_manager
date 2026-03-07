@@ -29,14 +29,35 @@ def render_performance():
     st.markdown("### ETF Comparison Tool")
     st.write("Compare key metrics, return profiles, and analyze holding overlaps.")
     
-    col_comp_search, col_comp_empty = st.columns([3, 1])
+    from app.database.connection import SessionLocal
+    db = SessionLocal()
+    
+    # Fetch all tickers across all user portfolios for the multiselect options
+    portfolio_holdings = db.query(Holding.ticker).distinct().all()
+    portfolio_tickers = [h[0] for h in portfolio_holdings]
+    
+    # Initialize session state for additional search tickers if not present
+    if "comparison_tickers" not in st.session_state:
+        st.session_state.comparison_tickers = portfolio_tickers if portfolio_tickers else ["VTI", "VXUS", "SPY"]
+
+    col_comp_search, col_comp_add = st.columns([3, 1])
+    
+    with col_comp_add:
+        new_ticker = st.text_input("Add Ticker", placeholder="e.g. NVDA, VOO").upper().strip()
+        if st.button("Add to Compare", use_container_width=True):
+            if new_ticker and new_ticker not in st.session_state.comparison_tickers:
+                st.session_state.comparison_tickers.append(new_ticker)
+                st.rerun()
+
     with col_comp_search:
         compare_tickers = st.multiselect(
-            "Select up to 4 ETFs to compare",
-            options=["VTI", "VXUS", "BND", "QQQ", "SPY", "ARKK", "JEPI", "SCHD", "VTIP"],
-            default=["VTI", "VXUS"],
+            "Select ETFs to compare",
+            options=st.session_state.comparison_tickers,
+            default=st.session_state.comparison_tickers[:2] if len(st.session_state.comparison_tickers) >= 2 else st.session_state.comparison_tickers,
             max_selections=4
         )
+    
+    db.close()
     
     if compare_tickers:
         if len(compare_tickers) == 1:
