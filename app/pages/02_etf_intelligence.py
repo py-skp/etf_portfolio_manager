@@ -252,7 +252,7 @@ def render_etf_intelligence():
                  st.success("Premium API keys detected!")
                  
                  if av_key:
-                     st.markdown("#### Real-Time Alpha Vantage Quote")
+                     st.markdown("#### Latest Alpha Vantage Quote")
                      import requests
                      with st.spinner("Fetching live premium data..."):
                          try:

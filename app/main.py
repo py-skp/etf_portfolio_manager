@@ -33,7 +33,7 @@ def main():
         st.info(f"The {selected_page} page is coming soon in the next development phase!")
 
 def render_dashboard():
-    section_header("Executive Portfolio Dashboard", "Real-time institutional-grade analytics.")
+    section_header("Executive Portfolio Dashboard", "Comprehensive institutional-grade analytics.")
     
     db = SessionLocal()
     portfolios = PortfolioService.get_portfolios(db)
@@ -81,24 +81,31 @@ def render_dashboard():
         df_hist = PortfolioService.get_portfolio_history(db, selected_portfolio.id)
         
         if not df_hist.empty:
+            import plotly.graph_objects as go
             # Calculate Gain/Loss for tooltip
             df_hist["Gain/Loss"] = df_hist["Market Value"] - df_hist["Invested Capital"]
             
-            fig = px.line(
-                df_hist, 
-                x="Date", 
-                y=["Invested Capital", "Market Value"], 
-                color_discrete_sequence=["#4B5563", "#00D4AA"],
-                custom_data=["Gain/Loss"]
-            )
+            fig = go.Figure()
             
-            # Format tooltips as exact currency and style
-            fig.update_traces(
-                hovertemplate="<b>Date</b>: %{x}<br><b>Value</b>: $%{y:,.2f}<br><b>Gain/Loss</b>: $%{customdata[0]:,.2f}<extra></extra>"
-            )
+            # Invested Capital Trace (No extra tooltip info)
+            fig.add_trace(go.Scatter(
+                x=df_hist["Date"],
+                y=df_hist["Invested Capital"],
+                name="Invested Capital",
+                line=dict(color="#4B5563", width=2),
+                hovertemplate="$%{y:,.2f}<extra></extra>"
+            ))
             
-            # Fill under the market value line for that area chart feel
-            fig.update_traces(fill='tonexty', selector=dict(name="Market Value"))
+            # Market Value Trace (Includes Gain/Loss in tooltip)
+            fig.add_trace(go.Scatter(
+                x=df_hist["Date"],
+                y=df_hist["Market Value"],
+                name="Market Value",
+                line=dict(color="#00D4AA", width=2.5),
+                fill='tonexty',
+                customdata=df_hist[["Gain/Loss"]].values,
+                hovertemplate="$%{y:,.2f}<br><b>Gain/Loss</b>: $%{customdata[0]:,.2f}<extra></extra>"
+            ))
             
             fig.update_layout(
                 paper_bgcolor="#131722",
